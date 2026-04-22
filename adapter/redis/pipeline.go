@@ -1,0 +1,82 @@
+package redis
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/arcgolabs/kvx"
+	"github.com/redis/go-redis/v9"
+	"github.com/samber/lo"
+	"github.com/samber/oops"
+)
+
+// Pipeline creates a new pipeline.
+func (a *Adapter) Pipeline() kvx.Pipeline {
+	return &redisPipeline{
+		pipe: a.client.Pipeline(),
+	}
+}
+
+type redisPipeline struct {
+	pipe redis.Pipeliner
+}
+
+// Enqueue adds a command to the pipeline.
+func (p *redisPipeline) Enqueue(command string, args ...[]byte) error {
+	if len(args) > kvx.MaxPipelineArgs {
+		return oops.In("kvx/adapter/redis").
+			With("op", "enqueue_pipeline_command", "command", command, "arg_count", len(args), "max_pipeline_args", kvx.MaxPipelineArgs).
+			Wrapf(kvx.ErrTooManyArgs, "enqueue redis pipeline command")
+	}
+
+	ifaceArgs := lo.Concat([]any{command}, lo.Map(args, func(v []byte, _ int) any { return v }))
+
+	p.pipe.Do(context.Background(), ifaceArgs...)
+	return nil
+}
+
+// Exec executes all queued commands.
+func (p *redisPipeline) Exec(ctx context.Context) ([][]byte, error) {
+	cmders, err := p.pipe.Exec(ctx)
+	if err != nil {
+		return nil, wrapRedisError("execute pipeline", err)
+	}
+
+	results := make([][]byte, len(cmders))
+	for index, cmder := range cmders {
+		value, shouldSet, decodeErr := decodePipelineCommand(cmder)
+		if decodeErr != nil {
+			return nil, decodeErr
+		}
+		if shouldSet {
+			results[index] = value
+		}
+	}
+
+	return results, nil
+}
+
+func decodePipelineCommand(cmder redis.Cmder) ([]byte, bool, error) {
+	cmd, ok := cmder.(*redis.Cmd)
+	if !ok {
+		return nil, false, oops.In("kvx/adapter/redis").
+			With("op", "decode_pipeline_command", "command_type", fmt.Sprintf("%T", cmder)).
+			Errorf("redis execute pipeline: unexpected command type")
+	}
+
+	if err := cmd.Err(); err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, false, nil
+		}
+		return nil, true, nil
+	}
+
+	return valueToBytes(cmd.Val()), true, nil
+}
+
+// Close closes the pipeline.
+func (p *redisPipeline) Close() error {
+	// Pipeline doesn't need explicit close in go-redis
+	return nil
+}
