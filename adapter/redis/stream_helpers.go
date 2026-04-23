@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/samber/lo"

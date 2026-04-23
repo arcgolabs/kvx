@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/module/search"
 	"github.com/stretchr/testify/require"

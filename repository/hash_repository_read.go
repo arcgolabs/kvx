@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 )
 
 // FindByID loads an entity by its logical ID.

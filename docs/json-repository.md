@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DaiYuANg/arcgo/examples/kvx/shared"
-	"github.com/DaiYuANg/arcgo/kvx/repository"
+	"github.com/arcgolabs/kvx/examples/shared"
+	"github.com/arcgolabs/kvx/repository"
 )
 
 func main() {
@@ -59,4 +59,4 @@ func must(err error) {
 
 ## Runnable example (repository)
 
-- [examples/kvx/json_repository](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/json_repository)
+- [examples/json_repository](https://github.com/arcgolabs/kvx/tree/main/examples/json_repository)

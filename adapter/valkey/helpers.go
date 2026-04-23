@@ -3,7 +3,7 @@ package valkey
 import (
 	"strconv"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/valkey-io/valkey-go"

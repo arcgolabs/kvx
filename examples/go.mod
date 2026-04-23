@@ -1,4 +1,4 @@
-module github.com/DaiYuANg/arcgo/examples/kvx
+module github.com/arcgolabs/kvx/examples
 
 go 1.26.2
 

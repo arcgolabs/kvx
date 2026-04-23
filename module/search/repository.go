@@ -2,7 +2,7 @@ package search
 
 import "context"
 
-import "github.com/DaiYuANg/arcgo/collectionx"
+import "github.com/arcgolabs/collectionx"
 import "github.com/arcgolabs/kvx"
 
 // SearchableRepository provides search capabilities for repositories.

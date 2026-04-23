@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DaiYuANg/arcgo/examples/kvx/shared"
 	"github.com/arcgolabs/kvx"
 	valkeyadapter "github.com/arcgolabs/kvx/adapter/valkey"
+	"github.com/arcgolabs/kvx/examples/shared"
 )
 
 func main() {

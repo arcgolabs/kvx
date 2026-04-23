@@ -1,11 +1,11 @@
-package examples_test
+package main_test
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/mapping"
 	"github.com/arcgolabs/kvx/repository"

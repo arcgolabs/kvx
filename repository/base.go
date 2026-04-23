@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
-	"github.com/DaiYuANg/arcgo/collectionx/set"
+	"github.com/arcgolabs/collectionx"
+	"github.com/arcgolabs/collectionx/set"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/mapping"
 	"github.com/samber/lo"

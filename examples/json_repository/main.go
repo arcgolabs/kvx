@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DaiYuANg/arcgo/examples/kvx/shared"
+	"github.com/arcgolabs/kvx/examples/shared"
 	"github.com/arcgolabs/kvx/repository"
 )
 

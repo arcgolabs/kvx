@@ -9,8 +9,8 @@ weight: 4
 
 `kvx` provides thin adapters that expose the same capability surface over different drivers:
 
-- `github.com/DaiYuANg/arcgo/kvx/adapter/redis`
-- `github.com/DaiYuANg/arcgo/kvx/adapter/valkey`
+- `github.com/arcgolabs/kvx/adapter/redis`
+- `github.com/arcgolabs/kvx/adapter/valkey`
 
 This page shows a minimal runnable example using `testcontainers-go` to start a real Redis instance and then using `HashRepository` on top of it.
 
@@ -25,9 +25,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/DaiYuANg/arcgo/kvx"
-	redisadapter "github.com/DaiYuANg/arcgo/kvx/adapter/redis"
-	"github.com/DaiYuANg/arcgo/kvx/repository"
+	"github.com/arcgolabs/kvx"
+	redisadapter "github.com/arcgolabs/kvx/adapter/redis"
+	"github.com/arcgolabs/kvx/repository"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -89,10 +89,10 @@ func must(err error) {
 
 ## Runnable examples (repository)
 
-- Redis adapter: [examples/kvx/redis_adapter](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/redis_adapter)
-- Redis hash: [examples/kvx/redis_hash](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/redis_hash)
-- Redis JSON: [examples/kvx/redis_json](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/redis_json)
-- Redis stream: [examples/kvx/redis_stream](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/redis_stream)
-- Valkey hash: [examples/kvx/valkey_hash](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/valkey_hash)
-- Valkey JSON: [examples/kvx/valkey_json](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/valkey_json)
-- Valkey stream: [examples/kvx/valkey_stream](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/valkey_stream)
+- Redis adapter: [examples/redis_adapter](https://github.com/arcgolabs/kvx/tree/main/examples/redis_adapter)
+- Redis hash: [examples/redis_hash](https://github.com/arcgolabs/kvx/tree/main/examples/redis_hash)
+- Redis JSON: [examples/redis_json](https://github.com/arcgolabs/kvx/tree/main/examples/redis_json)
+- Redis stream: [examples/redis_stream](https://github.com/arcgolabs/kvx/tree/main/examples/redis_stream)
+- Valkey hash: [examples/valkey_hash](https://github.com/arcgolabs/kvx/tree/main/examples/valkey_hash)
+- Valkey JSON: [examples/valkey_json](https://github.com/arcgolabs/kvx/tree/main/examples/valkey_json)
+- Valkey stream: [examples/valkey_stream](https://github.com/arcgolabs/kvx/tree/main/examples/valkey_stream)

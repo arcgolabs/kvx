@@ -8,7 +8,7 @@ draft: false
 
 ## What kvx Is
 
-`github.com/DaiYuANg/arcgo/kvx` is a **Redis / Valkey–centric** framework for strongly typed object access, repository-style persistence, and feature modules (Pub/Sub, Stream, JSON, Search, Lua). It is **not** a generic cache abstraction for Memcached, SQL, or object storage.
+`github.com/arcgolabs/kvx` is a **Redis / Valkey–centric** framework for strongly typed object access, repository-style persistence, and feature modules (Pub/Sub, Stream, JSON, Search, Lua). It is **not** a generic cache abstraction for Memcached, SQL, or object storage.
 
 ## Goals
 

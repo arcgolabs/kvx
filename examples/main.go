@@ -5,15 +5,15 @@ import "fmt"
 
 func main() {
 	mustPrintln("Available kvx examples:")
-	mustPrintln("  go run ./examples/kvx/hash_repository")
-	mustPrintln("  go run ./examples/kvx/json_repository")
-	mustPrintln("  go run ./examples/kvx/redis_adapter")
-	mustPrintln("  go run ./examples/kvx/redis_hash")
-	mustPrintln("  go run ./examples/kvx/redis_json")
-	mustPrintln("  go run ./examples/kvx/redis_stream")
-	mustPrintln("  go run ./examples/kvx/valkey_hash")
-	mustPrintln("  go run ./examples/kvx/valkey_json")
-	mustPrintln("  go run ./examples/kvx/valkey_stream")
+	mustPrintln("  go run ./examples/hash_repository")
+	mustPrintln("  go run ./examples/json_repository")
+	mustPrintln("  go run ./examples/redis_adapter")
+	mustPrintln("  go run ./examples/redis_hash")
+	mustPrintln("  go run ./examples/redis_json")
+	mustPrintln("  go run ./examples/redis_stream")
+	mustPrintln("  go run ./examples/valkey_hash")
+	mustPrintln("  go run ./examples/valkey_json")
+	mustPrintln("  go run ./examples/valkey_stream")
 }
 
 func mustPrintln(args ...any) {

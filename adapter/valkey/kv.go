@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/samber/oops"

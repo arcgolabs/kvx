@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DaiYuANg/arcgo/examples/kvx/shared"
 	"github.com/arcgolabs/kvx"
 	redisadapter "github.com/arcgolabs/kvx/adapter/redis"
+	"github.com/arcgolabs/kvx/examples/shared"
 )
 
 func main() {

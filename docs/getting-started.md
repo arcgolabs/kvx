@@ -24,9 +24,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DaiYuANg/arcgo/examples/kvx/shared"
-	"github.com/DaiYuANg/arcgo/kvx/mapping"
-	"github.com/DaiYuANg/arcgo/kvx/repository"
+	"github.com/arcgolabs/kvx/examples/shared"
+	"github.com/arcgolabs/kvx/mapping"
+	"github.com/arcgolabs/kvx/repository"
 )
 
 func main() {
@@ -67,4 +67,4 @@ func must(err error) {
 
 ## Runnable example (repository)
 
-- [examples/kvx/hash_repository](https://github.com/DaiYuANg/arcgo/tree/main/examples/kvx/hash_repository)
+- [examples/hash_repository](https://github.com/arcgolabs/kvx/tree/main/examples/hash_repository)

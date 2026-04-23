@@ -7,7 +7,7 @@ import (
 	"maps"
 	"strconv"
 
-	"github.com/DaiYuANg/arcgo/collectionx"
+	"github.com/arcgolabs/collectionx"
 	"github.com/arcgolabs/kvx"
 )
 

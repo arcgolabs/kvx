@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	collectionmapping "github.com/DaiYuANg/arcgo/collectionx/mapping"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/samber/oops"
