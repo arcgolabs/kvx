@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -64,8 +64,8 @@ func (c *Claimer) claimAndProcess(ctx context.Context) error {
 	}
 }
 
-func (c *Claimer) processClaimedEntries(ctx context.Context, entries collectionx.List[kvx.StreamEntry]) error {
-	idsToAck := collectionx.FilterMapList(entries, func(_ int, entry kvx.StreamEntry) (string, bool) {
+func (c *Claimer) processClaimedEntries(ctx context.Context, entries *collectionlist.List[kvx.StreamEntry]) error {
+	idsToAck := collectionlist.FilterMapList(entries, func(_ int, entry kvx.StreamEntry) (string, bool) {
 		if err := c.handler(ctx, entry); err != nil {
 			return "", false
 		}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/mapping"
 	"github.com/arcgolabs/kvx/repository"
@@ -50,16 +50,16 @@ func (m *exampleHashKV) ExistsMulti(context.Context, []string) (map[string]bool,
 }
 func (m *exampleHashKV) Expire(context.Context, string, time.Duration) error { return nil }
 func (m *exampleHashKV) TTL(context.Context, string) (time.Duration, error)  { return 0, nil }
-func (m *exampleHashKV) Scan(_ context.Context, pattern string, _ uint64, _ int64) (collectionx.List[string], uint64, error) {
+func (m *exampleHashKV) Scan(_ context.Context, pattern string, _ uint64, _ int64) (*collectionlist.List[string], uint64, error) {
 	keys := make([]string, 0)
 	for key := range m.keys {
 		if pattern != "" && pattern[len(pattern)-1] == '*' && len(key) >= len(pattern)-1 && key[:len(pattern)-1] == pattern[:len(pattern)-1] {
 			keys = append(keys, key)
 		}
 	}
-	return collectionx.NewListWithCapacity(len(keys), keys...), 0, nil
+	return collectionlist.NewListWithCapacity(len(keys), keys...), 0, nil
 }
-func (m *exampleHashKV) Keys(ctx context.Context, pattern string) (collectionx.List[string], error) {
+func (m *exampleHashKV) Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error) {
 	keys, _, err := m.Scan(ctx, pattern, 0, 0)
 	return keys, err
 }
@@ -80,11 +80,11 @@ func (m *exampleHashKV) HGetAll(_ context.Context, key string) (map[string][]byt
 }
 func (m *exampleHashKV) HDel(context.Context, string, ...string) error         { return nil }
 func (m *exampleHashKV) HExists(context.Context, string, string) (bool, error) { return false, nil }
-func (m *exampleHashKV) HKeys(context.Context, string) (collectionx.List[string], error) {
-	return collectionx.NewList[string](), nil
+func (m *exampleHashKV) HKeys(context.Context, string) (*collectionlist.List[string], error) {
+	return collectionlist.NewList[string](), nil
 }
-func (m *exampleHashKV) HVals(context.Context, string) (collectionx.List[[]byte], error) {
-	return collectionx.NewList[[]byte](), nil
+func (m *exampleHashKV) HVals(context.Context, string) (*collectionlist.List[[]byte], error) {
+	return collectionlist.NewList[[]byte](), nil
 }
 func (m *exampleHashKV) HLen(context.Context, string) (int64, error)                   { return 0, nil }
 func (m *exampleHashKV) HIncrBy(context.Context, string, string, int64) (int64, error) { return 0, nil }

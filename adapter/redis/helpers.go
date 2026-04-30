@@ -3,7 +3,7 @@ package redis
 import (
 	"fmt"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/samber/lo"
 )
 
@@ -39,13 +39,13 @@ func valueToBytes(val any) []byte {
 	}
 }
 
-func parseFTSearchResponse(val any) collectionx.List[string] {
+func parseFTSearchResponse(val any) *collectionlist.List[string] {
 	arr, ok := val.([]any)
 	if !ok || len(arr) < 1 {
-		return collectionx.NewList[string]()
+		return collectionlist.NewList[string]()
 	}
 
-	return collectionx.FilterMapList(collectionx.NewListWithCapacity(len(arr)-1, arr[1:]...), func(index int, item any) (string, bool) {
+	return collectionlist.FilterMapList(collectionlist.NewListWithCapacity(len(arr)-1, arr[1:]...), func(index int, item any) (string, bool) {
 		if index%2 != 0 {
 			return "", false
 		}

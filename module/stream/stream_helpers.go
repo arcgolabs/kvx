@@ -1,7 +1,8 @@
 package stream
 
 import (
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/samber/oops"
@@ -37,7 +38,7 @@ func convertToBytes(v any) ([]byte, error) {
 	}
 }
 
-func limitEntries(entries collectionx.List[kvx.StreamEntry], count int64) collectionx.List[kvx.StreamEntry] {
+func limitEntries(entries *collectionlist.List[kvx.StreamEntry], count int64) *collectionlist.List[kvx.StreamEntry] {
 	if entries == nil || count <= 0 || count >= int64(entries.Len()) {
 		return entries
 	}
@@ -45,10 +46,10 @@ func limitEntries(entries collectionx.List[kvx.StreamEntry], count int64) collec
 	return entries.Take(int(count))
 }
 
-func streamEntriesFromMultiMap(results collectionx.MultiMap[string, kvx.StreamEntry], streamKey string) collectionx.List[kvx.StreamEntry] {
+func streamEntriesFromMultiMap(results *collectionmapping.MultiMap[string, kvx.StreamEntry], streamKey string) *collectionlist.List[kvx.StreamEntry] {
 	entries := results.Get(streamKey)
 	if len(entries) == 0 {
-		return collectionx.NewList[kvx.StreamEntry]()
+		return collectionlist.NewList[kvx.StreamEntry]()
 	}
-	return collectionx.NewListWithCapacity(len(entries), entries...)
+	return collectionlist.NewListWithCapacity(len(entries), entries...)
 }

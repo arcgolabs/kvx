@@ -3,7 +3,8 @@ package valkey
 import (
 	"strconv"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/valkey-io/valkey-go"
@@ -57,25 +58,25 @@ func convertStringMapToBytes(values map[string]string) map[string][]byte {
 	})
 }
 
-func convertXRangeEntries(entries []valkey.XRangeEntry) collectionx.List[kvx.StreamEntry] {
-	return collectionx.MapList(collectionx.NewListWithCapacity(len(entries), entries...), func(_ int, entry valkey.XRangeEntry) kvx.StreamEntry {
+func convertXRangeEntries(entries []valkey.XRangeEntry) *collectionlist.List[kvx.StreamEntry] {
+	return collectionlist.MapList(collectionlist.NewListWithCapacity(len(entries), entries...), func(_ int, entry valkey.XRangeEntry) kvx.StreamEntry {
 		return kvx.StreamEntry{
 			ID:     entry.ID,
-			Values: collectionx.NewMapFrom(convertStringMapToBytes(entry.FieldValues)),
+			Values: collectionmapping.NewMapFrom(convertStringMapToBytes(entry.FieldValues)),
 		}
 	})
 }
 
-func convertXReadEntries(entries map[string][]valkey.XRangeEntry) collectionx.MultiMap[string, kvx.StreamEntry] {
-	result := collectionx.NewMultiMapWithCapacity[string, kvx.StreamEntry](len(entries))
+func convertXReadEntries(entries map[string][]valkey.XRangeEntry) *collectionmapping.MultiMap[string, kvx.StreamEntry] {
+	result := collectionmapping.NewMultiMapWithCapacity[string, kvx.StreamEntry](len(entries))
 	lo.ForEach(lo.Entries(entries), func(entry lo.Entry[string, []valkey.XRangeEntry], _ int) {
 		result.Set(entry.Key, convertXRangeEntries(entry.Value).Values()...)
 	})
 	return result
 }
 
-func searchDocsToKeys(docs []valkey.FtSearchDoc) collectionx.List[string] {
-	return collectionx.MapList(collectionx.NewListWithCapacity(len(docs), docs...), func(_ int, doc valkey.FtSearchDoc) string {
+func searchDocsToKeys(docs []valkey.FtSearchDoc) *collectionlist.List[string] {
+	return collectionlist.MapList(collectionlist.NewListWithCapacity(len(docs), docs...), func(_ int, doc valkey.FtSearchDoc) string {
 		return doc.Key
 	})
 }
@@ -94,7 +95,7 @@ func formatInt64(value int64) string {
 
 func buildXReadGroupArgs(group, consumer string, streams map[string]string, count, block int64) []string {
 	keys, ids := streamNamesAndIDs(streams)
-	args := collectionx.NewListWithCapacity[string](len(keys)*2+7, "GROUP", group, consumer)
+	args := collectionlist.NewListWithCapacity[string](len(keys)*2+7, "GROUP", group, consumer)
 	if count > 0 {
 		args.Add("COUNT", strconv.FormatInt(count, 10))
 	}

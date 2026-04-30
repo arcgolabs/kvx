@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 )
@@ -76,20 +76,20 @@ func (a *Adapter) HExists(ctx context.Context, key, field string) (bool, error) 
 }
 
 // HKeys gets all field names in a hash.
-func (a *Adapter) HKeys(ctx context.Context, key string) (collectionx.List[string], error) {
+func (a *Adapter) HKeys(ctx context.Context, key string) (*collectionlist.List[string], error) {
 	resp := a.client.Do(ctx, a.client.B().Hkeys().Key(key).Build())
 
 	return stringSliceFromResult("list hash fields", resp)
 }
 
 // HVals gets all values in a hash.
-func (a *Adapter) HVals(ctx context.Context, key string) (collectionx.List[[]byte], error) {
+func (a *Adapter) HVals(ctx context.Context, key string) (*collectionlist.List[[]byte], error) {
 	resp := a.client.Do(ctx, a.client.B().Hvals().Key(key).Build())
 	strs, err := stringSliceFromResult("list hash values", resp)
 	if err != nil {
 		return nil, err
 	}
-	return collectionx.MapList(strs, func(_ int, value string) []byte {
+	return collectionlist.MapList(strs, func(_ int, value string) []byte {
 		return []byte(value)
 	}), nil
 }

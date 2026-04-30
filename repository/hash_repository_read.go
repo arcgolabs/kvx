@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 )
 
 // FindByID loads an entity by its logical ID.
@@ -36,7 +36,7 @@ func (r *HashRepository[T]) ExistsBatch(ctx context.Context, ids []string) (map[
 }
 
 // FindAll loads all entities stored under the repository key prefix.
-func (r *HashRepository[T]) FindAll(ctx context.Context) (collectionx.List[*T], error) {
+func (r *HashRepository[T]) FindAll(ctx context.Context) (*collectionlist.List[*T], error) {
 	keys, err := r.base.scanAllKeys(ctx, r.kv)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (r *HashRepository[T]) Count(ctx context.Context) (int64, error) {
 }
 
 // FindByField loads all entities whose indexed field matches the provided value.
-func (r *HashRepository[T]) FindByField(ctx context.Context, fieldName, fieldValue string) (collectionx.List[*T], error) {
+func (r *HashRepository[T]) FindByField(ctx context.Context, fieldName, fieldValue string) (*collectionlist.List[*T], error) {
 	entityIDs, err := r.base.idsByField(ctx, fieldName, fieldValue)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (r *HashRepository[T]) FindByField(ctx context.Context, fieldName, fieldVal
 }
 
 // FindByFields loads all entities that match every provided indexed field value.
-func (r *HashRepository[T]) FindByFields(ctx context.Context, fields map[string]string) (collectionx.List[*T], error) {
+func (r *HashRepository[T]) FindByFields(ctx context.Context, fields map[string]string) (*collectionlist.List[*T], error) {
 	if len(fields) == 0 {
 		return r.FindAll(ctx)
 	}
@@ -82,7 +82,7 @@ func (r *HashRepository[T]) FindByFields(ctx context.Context, fields map[string]
 
 	intersection := intersectStringSlices(idGroups...)
 	if len(intersection) == 0 {
-		return collectionx.NewList[*T](), nil
+		return collectionlist.NewList[*T](), nil
 	}
 
 	return r.findManyByIDs(ctx, intersection)
@@ -122,7 +122,7 @@ func (r *HashRepository[T]) findByKey(ctx context.Context, key string) (*T, erro
 	return &entity, nil
 }
 
-func (r *HashRepository[T]) findManyByIDs(ctx context.Context, ids []string) (collectionx.List[*T], error) {
+func (r *HashRepository[T]) findManyByIDs(ctx context.Context, ids []string) (*collectionlist.List[*T], error) {
 	return collectPresentList(ids, func(id string) (*T, error) {
 		return r.FindByID(ctx, id)
 	})

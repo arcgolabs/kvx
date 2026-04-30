@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/oops"
 )
@@ -60,7 +60,7 @@ func (cg *ConsumerGroup) Destroy(ctx context.Context) error {
 }
 
 // Read reads messages from the consumer group.
-func (cg *ConsumerGroup) Read(ctx context.Context, count int64, block time.Duration) (collectionx.List[kvx.StreamEntry], error) {
+func (cg *ConsumerGroup) Read(ctx context.Context, count int64, block time.Duration) (*collectionlist.List[kvx.StreamEntry], error) {
 	streams := map[string]string{
 		cg.streamKey: ">",
 	}
@@ -75,7 +75,7 @@ func (cg *ConsumerGroup) Read(ctx context.Context, count int64, block time.Durat
 }
 
 // ReadPending reads pending messages (previously delivered but not acknowledged).
-func (cg *ConsumerGroup) ReadPending(ctx context.Context, count int64) (collectionx.List[kvx.StreamEntry], error) {
+func (cg *ConsumerGroup) ReadPending(ctx context.Context, count int64) (*collectionlist.List[kvx.StreamEntry], error) {
 	streams := map[string]string{
 		cg.streamKey: "0",
 	}
@@ -112,19 +112,19 @@ func (cg *ConsumerGroup) Pending(ctx context.Context) (*kvx.PendingInfo, error) 
 }
 
 // PendingRange gets pending entries in a range.
-func (cg *ConsumerGroup) PendingRange(ctx context.Context, start, stop string, count int64) (collectionx.List[kvx.PendingEntry], error) {
+func (cg *ConsumerGroup) PendingRange(ctx context.Context, start, stop string, count int64) (*collectionlist.List[kvx.PendingEntry], error) {
 	entries, err := cg.client.XPendingRange(ctx, cg.streamKey, cg.groupName, start, stop, count)
 	return wrapResult(entries, err, cg.groupAction("read pending entry range"))
 }
 
 // Claim claims pending entries from other consumers.
-func (cg *ConsumerGroup) Claim(ctx context.Context, ids []string, minIdleTime time.Duration) (collectionx.List[kvx.StreamEntry], error) {
+func (cg *ConsumerGroup) Claim(ctx context.Context, ids []string, minIdleTime time.Duration) (*collectionlist.List[kvx.StreamEntry], error) {
 	entries, err := cg.client.XClaim(ctx, cg.streamKey, cg.groupName, cg.consumerName, minIdleTime, ids)
 	return wrapResult(entries, err, cg.consumerAction("claim pending entries"))
 }
 
 // AutoClaim auto-claims pending entries that have been idle for minIdleTime.
-func (cg *ConsumerGroup) AutoClaim(ctx context.Context, minIdleTime time.Duration, count int64) (string, collectionx.List[kvx.StreamEntry], error) {
+func (cg *ConsumerGroup) AutoClaim(ctx context.Context, minIdleTime time.Duration, count int64) (string, *collectionlist.List[kvx.StreamEntry], error) {
 	nextID, entries, err := cg.client.XAutoClaim(
 		ctx,
 		cg.streamKey,
@@ -242,7 +242,7 @@ func (m *ConsumerGroupManager) DestroyGroup(ctx context.Context, groupName strin
 }
 
 // ListGroups lists all consumer groups for the stream.
-func (m *ConsumerGroupManager) ListGroups(ctx context.Context) (collectionx.List[kvx.GroupInfo], error) {
+func (m *ConsumerGroupManager) ListGroups(ctx context.Context) (*collectionlist.List[kvx.GroupInfo], error) {
 	groups, err := m.client.XInfoGroups(ctx, m.streamKey)
 	return wrapResult(groups, err, m.streamAction("list consumer groups"))
 }

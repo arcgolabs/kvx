@@ -7,7 +7,7 @@ import (
 	"maps"
 	"strconv"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -98,13 +98,13 @@ func (b *HashBackend) HExists(_ context.Context, key, field string) (bool, error
 }
 
 // HKeys returns the field names stored in the hash at key.
-func (b *HashBackend) HKeys(_ context.Context, key string) (collectionx.List[string], error) {
+func (b *HashBackend) HKeys(_ context.Context, key string) (*collectionlist.List[string], error) {
 	hash, ok := b.hashes[key]
 	if !ok {
-		return collectionx.NewList[string](), nil
+		return collectionlist.NewList[string](), nil
 	}
 
-	keys := collectionx.NewListWithCapacity[string](len(hash))
+	keys := collectionlist.NewListWithCapacity[string](len(hash))
 	for field := range hash {
 		keys.Add(field)
 	}
@@ -113,13 +113,13 @@ func (b *HashBackend) HKeys(_ context.Context, key string) (collectionx.List[str
 }
 
 // HVals returns the field values stored in the hash at key.
-func (b *HashBackend) HVals(_ context.Context, key string) (collectionx.List[[]byte], error) {
+func (b *HashBackend) HVals(_ context.Context, key string) (*collectionlist.List[[]byte], error) {
 	hash, ok := b.hashes[key]
 	if !ok {
-		return collectionx.NewList[[]byte](), nil
+		return collectionlist.NewList[[]byte](), nil
 	}
 
-	values := collectionx.NewListWithCapacity[[]byte](len(hash))
+	values := collectionlist.NewListWithCapacity[[]byte](len(hash))
 	for _, value := range hash {
 		values.Add(value)
 	}

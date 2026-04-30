@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -112,8 +112,8 @@ func (b *JSONBackend) TTL(_ context.Context, key string) (time.Duration, error) 
 }
 
 // Scan returns keys matching the provided glob-style prefix pattern.
-func (b *JSONBackend) Scan(_ context.Context, pattern string, _ uint64, _ int64) (collectionx.List[string], uint64, error) {
-	keys := collectionx.NewListWithCapacity[string](len(b.data))
+func (b *JSONBackend) Scan(_ context.Context, pattern string, _ uint64, _ int64) (*collectionlist.List[string], uint64, error) {
+	keys := collectionlist.NewListWithCapacity[string](len(b.data))
 	for key := range b.data {
 		if matchesPattern(key, pattern) {
 			keys.Add(key)
@@ -124,7 +124,7 @@ func (b *JSONBackend) Scan(_ context.Context, pattern string, _ uint64, _ int64)
 }
 
 // Keys returns keys matching pattern.
-func (b *JSONBackend) Keys(ctx context.Context, pattern string) (collectionx.List[string], error) {
+func (b *JSONBackend) Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error) {
 	keys, _, err := b.Scan(ctx, pattern, 0, 0)
 	return keys, err
 }

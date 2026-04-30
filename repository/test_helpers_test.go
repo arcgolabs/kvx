@@ -5,7 +5,7 @@ import (
 	"maps"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -89,28 +89,28 @@ func (m *mockHash) HExists(_ context.Context, key, field string) (bool, error) {
 	return false, nil
 }
 
-func (m *mockHash) HKeys(_ context.Context, key string) (collectionx.List[string], error) {
+func (m *mockHash) HKeys(_ context.Context, key string) (*collectionlist.List[string], error) {
 	if hash, ok := m.data[key]; ok {
 		keys := make([]string, 0, len(hash))
 		for key := range hash {
 			keys = append(keys, key)
 		}
-		return collectionx.NewListWithCapacity(len(keys), keys...), nil
+		return collectionlist.NewListWithCapacity(len(keys), keys...), nil
 	}
 
-	return collectionx.NewList[string](), nil
+	return collectionlist.NewList[string](), nil
 }
 
-func (m *mockHash) HVals(_ context.Context, key string) (collectionx.List[[]byte], error) {
+func (m *mockHash) HVals(_ context.Context, key string) (*collectionlist.List[[]byte], error) {
 	if hash, ok := m.data[key]; ok {
 		values := make([][]byte, 0, len(hash))
 		for _, value := range hash {
 			values = append(values, value)
 		}
-		return collectionx.NewListWithCapacity(len(values), values...), nil
+		return collectionlist.NewListWithCapacity(len(values), values...), nil
 	}
 
-	return collectionx.NewList[[]byte](), nil
+	return collectionlist.NewList[[]byte](), nil
 }
 
 func (m *mockHash) HLen(_ context.Context, key string) (int64, error) {
@@ -225,15 +225,15 @@ func (m *mockKV) TTL(_ context.Context, key string) (time.Duration, error) {
 	return 0, nil
 }
 
-func (m *mockKV) Scan(_ context.Context, pattern string, cursor uint64, _ int64) (collectionx.List[string], uint64, error) {
+func (m *mockKV) Scan(_ context.Context, pattern string, cursor uint64, _ int64) (*collectionlist.List[string], uint64, error) {
 	if len(m.scanPages) > 0 {
 		if cursor > uint64(maxInt) {
-			return collectionx.NewList[string](), 0, nil
+			return collectionlist.NewList[string](), 0, nil
 		}
 
 		index := int(cursor)
 		if index >= len(m.scanPages) {
-			return collectionx.NewList[string](), 0, nil
+			return collectionlist.NewList[string](), 0, nil
 		}
 
 		page := append([]string(nil), m.scanPages[index]...)
@@ -241,7 +241,7 @@ func (m *mockKV) Scan(_ context.Context, pattern string, cursor uint64, _ int64)
 		if index+1 < len(m.scanPages) {
 			next = uint64(index + 1)
 		}
-		return collectionx.NewListWithCapacity(len(page), page...), next, nil
+		return collectionlist.NewListWithCapacity(len(page), page...), next, nil
 	}
 
 	matched := make([]string, 0, len(m.data))
@@ -251,10 +251,10 @@ func (m *mockKV) Scan(_ context.Context, pattern string, cursor uint64, _ int64)
 		}
 	}
 
-	return collectionx.NewListWithCapacity(len(matched), matched...), 0, nil
+	return collectionlist.NewListWithCapacity(len(matched), matched...), 0, nil
 }
 
-func (m *mockKV) Keys(ctx context.Context, pattern string) (collectionx.List[string], error) {
+func (m *mockKV) Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error) {
 	keys, _, err := m.Scan(ctx, pattern, 0, 0)
 	return keys, err
 }

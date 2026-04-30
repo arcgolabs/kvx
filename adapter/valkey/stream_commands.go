@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 )
@@ -17,23 +18,23 @@ func (a *Adapter) XAdd(ctx context.Context, key, id string, values map[string][]
 }
 
 // XRead reads entries from a stream.
-func (a *Adapter) XRead(ctx context.Context, key, start string, count int64) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRead(ctx context.Context, key, start string, count int64) (*collectionlist.List[kvx.StreamEntry], error) {
 	resp := a.client.Do(ctx, newXReadCommand(a.client, key, start, count))
 	entries, err := xReadEntriesFromResult("read stream", resp)
 	if err != nil {
 		return nil, err
 	}
 	if len(entries) == 0 {
-		return collectionx.NewList[kvx.StreamEntry](), nil
+		return collectionlist.NewList[kvx.StreamEntry](), nil
 	}
 
 	return convertXRangeEntries(entries[key]), nil
 }
 
 // XReadMultiple reads entries from multiple streams.
-func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, count int64, _ time.Duration) (collectionx.MultiMap[string, kvx.StreamEntry], error) {
+func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, count int64, _ time.Duration) (*collectionmapping.MultiMap[string, kvx.StreamEntry], error) {
 	readErr := error(nil)
-	result := collectionx.NewMultiMapWithCapacity[string, kvx.StreamEntry](len(streams))
+	result := collectionmapping.NewMultiMapWithCapacity[string, kvx.StreamEntry](len(streams))
 	lo.ForEach(lo.Entries(streams), func(entry lo.Entry[string, string], _ int) {
 		if readErr != nil {
 			return
@@ -55,7 +56,7 @@ func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, 
 }
 
 // XRange reads entries in a range.
-func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (*collectionlist.List[kvx.StreamEntry], error) {
 	resp := a.client.Do(ctx, a.client.B().Xrange().Key(key).Start(start).End(stop).Build())
 	entries, err := xRangeEntriesFromResult("range stream", resp)
 	if err != nil {
@@ -66,7 +67,7 @@ func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (collecti
 }
 
 // XRevRange reads entries in reverse order.
-func (a *Adapter) XRevRange(ctx context.Context, key, start, stop string) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRevRange(ctx context.Context, key, start, stop string) (*collectionlist.List[kvx.StreamEntry], error) {
 	resp := a.client.Do(ctx, a.client.B().Arbitrary("XREVRANGE").Args(key, start, stop).Build())
 	entries, err := xRangeEntriesFromResult("reverse range stream", resp)
 	if err != nil {
@@ -94,7 +95,7 @@ func (a *Adapter) XDel(ctx context.Context, key string, ids []string) error {
 		return nil
 	}
 
-	args := collectionx.NewListWithCapacity[string](len(ids)+1, key)
+	args := collectionlist.NewListWithCapacity[string](len(ids)+1, key)
 	args.Add(ids...)
 	return wrapValkeyError("delete stream entries", a.client.Do(ctx, a.client.B().Arbitrary("XDEL").Args(args.Values()...).Build()).Error())
 }

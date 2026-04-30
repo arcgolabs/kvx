@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 )
@@ -103,7 +103,7 @@ return 1
 
 func execHashUpsertScript(ctx context.Context, script kvx.Script, key string, hashData map[string][]byte, expiration time.Duration, removeEntries, addEntries []string) error {
 	keys := lo.Concat([]string{key}, removeEntries, addEntries)
-	args := collectionx.NewListWithCapacity[[]byte](3+len(hashData)*2,
+	args := collectionlist.NewListWithCapacity[[]byte](3+len(hashData)*2,
 		[]byte(strconv.Itoa(len(removeEntries))),
 		[]byte(strconv.FormatInt(expiration.Milliseconds(), 10)),
 		[]byte(strconv.Itoa(len(hashData))),
@@ -141,7 +141,7 @@ func execJSONFieldUpdateScript(ctx context.Context, script kvx.Script, key, path
 }
 
 func buildFieldUpdateKeys(key string, removeEntries, addEntries []string) []string {
-	keys := collectionx.NewListWithCapacity[string](3, key)
+	keys := collectionlist.NewListWithCapacity[string](3, key)
 	if len(removeEntries) > 0 {
 		keys.Add(removeEntries[0])
 	}

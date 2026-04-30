@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -37,7 +37,7 @@ func (r *JSONRepository[T]) ExistsBatch(ctx context.Context, ids []string) (map[
 }
 
 // FindByField loads all entities whose indexed field matches the provided value.
-func (r *JSONRepository[T]) FindByField(ctx context.Context, fieldName, fieldValue string) (collectionx.List[*T], error) {
+func (r *JSONRepository[T]) FindByField(ctx context.Context, fieldName, fieldValue string) (*collectionlist.List[*T], error) {
 	ids, err := r.base.idsByField(ctx, fieldName, fieldValue)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (r *JSONRepository[T]) FindByField(ctx context.Context, fieldName, fieldVal
 }
 
 // FindByFields loads all entities that match every provided indexed field value.
-func (r *JSONRepository[T]) FindByFields(ctx context.Context, fields map[string]string) (collectionx.List[*T], error) {
+func (r *JSONRepository[T]) FindByFields(ctx context.Context, fields map[string]string) (*collectionlist.List[*T], error) {
 	if len(fields) == 0 {
 		return r.FindAll(ctx)
 	}
@@ -61,14 +61,14 @@ func (r *JSONRepository[T]) FindByFields(ctx context.Context, fields map[string]
 
 	intersection := intersectStringSlices(idGroups...)
 	if len(intersection) == 0 {
-		return collectionx.NewList[*T](), nil
+		return collectionlist.NewList[*T](), nil
 	}
 
 	return r.findManyByIDs(ctx, intersection)
 }
 
 // FindAll loads all entities stored under the repository key prefix.
-func (r *JSONRepository[T]) FindAll(ctx context.Context) (collectionx.List[*T], error) {
+func (r *JSONRepository[T]) FindAll(ctx context.Context) (*collectionlist.List[*T], error) {
 	keys, err := r.base.scanAllKeys(ctx, r.kv)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (r *JSONRepository[T]) findByKey(ctx context.Context, key string) (*T, erro
 	return &entity, nil
 }
 
-func (r *JSONRepository[T]) findManyByIDs(ctx context.Context, ids []string) (collectionx.List[*T], error) {
+func (r *JSONRepository[T]) findManyByIDs(ctx context.Context, ids []string) (*collectionlist.List[*T], error) {
 	return collectPresentList(ids, func(id string) (*T, error) {
 		return r.FindByID(ctx, id)
 	})

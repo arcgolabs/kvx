@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/samber/lo"
 )
 
@@ -108,21 +108,21 @@ func (a *Adapter) TTL(ctx context.Context, key string) (time.Duration, error) {
 }
 
 // Scan iterates over keys matching the pattern.
-func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count int64) (collectionx.List[string], uint64, error) {
+func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count int64) (*collectionlist.List[string], uint64, error) {
 	keys, nextCursor, err := a.client.Scan(ctx, cursor, pattern, count).Result()
 	if err != nil {
 		return nil, 0, wrapRedisError("scan keys", err)
 	}
 
-	return collectionx.NewListWithCapacity(len(keys), keys...), nextCursor, nil
+	return collectionlist.NewListWithCapacity(len(keys), keys...), nextCursor, nil
 }
 
 // Keys returns all keys matching the pattern.
-func (a *Adapter) Keys(ctx context.Context, pattern string) (collectionx.List[string], error) {
+func (a *Adapter) Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error) {
 	keys, err := a.client.Keys(ctx, pattern).Result()
 	keys, err = wrapRedisResult("list keys", keys, err)
 	if err != nil {
 		return nil, err
 	}
-	return collectionx.NewListWithCapacity(len(keys), keys...), nil
+	return collectionlist.NewListWithCapacity(len(keys), keys...), nil
 }

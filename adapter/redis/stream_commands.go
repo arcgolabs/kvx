@@ -5,7 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 	goredis "github.com/redis/go-redis/v9"
 )
@@ -17,7 +18,7 @@ func (a *Adapter) XAdd(ctx context.Context, key, id string, values map[string][]
 }
 
 // XRead reads entries from a stream.
-func (a *Adapter) XRead(ctx context.Context, key, start string, count int64) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRead(ctx context.Context, key, start string, count int64) (*collectionlist.List[kvx.StreamEntry], error) {
 	result, err := a.client.XRead(ctx, &goredis.XReadArgs{
 		Streams: []string{key, start},
 		Count:   count,
@@ -25,21 +26,21 @@ func (a *Adapter) XRead(ctx context.Context, key, start string, count int64) (co
 	}).Result()
 	if err != nil {
 		if errors.Is(err, goredis.Nil) {
-			return collectionx.NewList[kvx.StreamEntry](), nil
+			return collectionlist.NewList[kvx.StreamEntry](), nil
 		}
 
 		return nil, wrapRedisError("read stream", err)
 	}
 
 	if len(result) == 0 {
-		return collectionx.NewList[kvx.StreamEntry](), nil
+		return collectionlist.NewList[kvx.StreamEntry](), nil
 	}
 
 	return convertStreamMessages(result[0].Messages), nil
 }
 
 // XReadMultiple reads entries from multiple streams.
-func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, count int64, block time.Duration) (collectionx.MultiMap[string, kvx.StreamEntry], error) {
+func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, count int64, block time.Duration) (*collectionmapping.MultiMap[string, kvx.StreamEntry], error) {
 	result, err := a.client.XRead(ctx, &goredis.XReadArgs{
 		Streams: buildStreamPairs(streams),
 		Count:   count,
@@ -47,7 +48,7 @@ func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, 
 	}).Result()
 	if err != nil {
 		if errors.Is(err, goredis.Nil) {
-			return collectionx.NewMultiMap[string, kvx.StreamEntry](), nil
+			return collectionmapping.NewMultiMap[string, kvx.StreamEntry](), nil
 		}
 
 		return nil, wrapRedisError("read multiple streams", err)
@@ -57,7 +58,7 @@ func (a *Adapter) XReadMultiple(ctx context.Context, streams map[string]string, 
 }
 
 // XRange reads entries in a range.
-func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (*collectionlist.List[kvx.StreamEntry], error) {
 	result, err := a.client.XRange(ctx, key, start, stop).Result()
 	result, err = wrapRedisResult("range stream", result, err)
 	if err != nil {
@@ -68,7 +69,7 @@ func (a *Adapter) XRange(ctx context.Context, key, start, stop string) (collecti
 }
 
 // XRevRange reads entries in reverse order.
-func (a *Adapter) XRevRange(ctx context.Context, key, start, stop string) (collectionx.List[kvx.StreamEntry], error) {
+func (a *Adapter) XRevRange(ctx context.Context, key, start, stop string) (*collectionlist.List[kvx.StreamEntry], error) {
 	result, err := a.client.XRevRange(ctx, key, start, stop).Result()
 	result, err = wrapRedisResult("reverse range stream", result, err)
 	if err != nil {

@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -29,9 +30,9 @@ func (a *Adapter) XGroupDelConsumer(ctx context.Context, key, group, consumer st
 }
 
 // XReadGroup reads entries as part of a consumer group.
-func (a *Adapter) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64, block time.Duration) (collectionx.MultiMap[string, kvx.StreamEntry], error) {
+func (a *Adapter) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64, block time.Duration) (*collectionmapping.MultiMap[string, kvx.StreamEntry], error) {
 	if len(streams) == 0 {
-		return collectionx.NewMultiMap[string, kvx.StreamEntry](), nil
+		return collectionmapping.NewMultiMap[string, kvx.StreamEntry](), nil
 	}
 
 	resp := a.client.Do(ctx, a.client.B().Arbitrary("XREADGROUP").Args(buildXReadGroupArgs(group, consumer, streams, count, block.Milliseconds())...).Build())
@@ -40,7 +41,7 @@ func (a *Adapter) XReadGroup(ctx context.Context, group, consumer string, stream
 		return nil, err
 	}
 	if len(entries) == 0 {
-		return collectionx.NewMultiMap[string, kvx.StreamEntry](), nil
+		return collectionmapping.NewMultiMap[string, kvx.StreamEntry](), nil
 	}
 
 	return convertXReadEntries(entries), nil
@@ -52,7 +53,7 @@ func (a *Adapter) XAck(ctx context.Context, key, group string, ids []string) err
 		return nil
 	}
 
-	args := collectionx.NewListWithCapacity[string](len(ids)+2, key, group)
+	args := collectionlist.NewListWithCapacity[string](len(ids)+2, key, group)
 	args.Add(ids...)
 	return wrapValkeyError("ack stream entries", a.client.Do(ctx, a.client.B().Arbitrary("XACK").Args(args.Values()...).Build()).Error())
 }

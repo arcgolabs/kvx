@@ -4,7 +4,7 @@ package search
 import (
 	"context"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/oops"
 )
@@ -24,11 +24,11 @@ type Index struct {
 	client    kvx.Search
 	name      string
 	keyPrefix string
-	schema    collectionx.List[kvx.SchemaField]
+	schema    *collectionlist.List[kvx.SchemaField]
 }
 
 // NewIndex creates a new Index instance.
-func NewIndex(client kvx.Search, name, keyPrefix string, schema collectionx.List[kvx.SchemaField]) *Index {
+func NewIndex(client kvx.Search, name, keyPrefix string, schema *collectionlist.List[kvx.SchemaField]) *Index {
 	return &Index{
 		client:    client,
 		name:      name,
@@ -96,7 +96,7 @@ func (i *Index) Search(ctx context.Context, query string, opts *Options) (*Resul
 		limit = 10
 	}
 
-	var keys collectionx.List[string]
+	var keys *collectionlist.List[string]
 	var err error
 
 	if opts.SortBy != "" {
@@ -134,7 +134,7 @@ func DefaultOptions() *Options {
 
 // Result represents the result of a search query.
 type Result struct {
-	Keys  collectionx.List[string]
+	Keys  *collectionlist.List[string]
 	Total int64
 }
 

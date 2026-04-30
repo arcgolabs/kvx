@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/samber/lo"
 )
 
@@ -70,24 +70,24 @@ func (a *Adapter) HExists(ctx context.Context, key, field string) (bool, error) 
 }
 
 // HKeys gets all field names in a hash.
-func (a *Adapter) HKeys(ctx context.Context, key string) (collectionx.List[string], error) {
+func (a *Adapter) HKeys(ctx context.Context, key string) (*collectionlist.List[string], error) {
 	keys, err := a.client.HKeys(ctx, key).Result()
 	keys, err = wrapRedisResult("list hash fields", keys, err)
 	if err != nil {
 		return nil, err
 	}
-	return collectionx.NewListWithCapacity(len(keys), keys...), nil
+	return collectionlist.NewListWithCapacity(len(keys), keys...), nil
 }
 
 // HVals gets all values in a hash.
-func (a *Adapter) HVals(ctx context.Context, key string) (collectionx.List[[]byte], error) {
+func (a *Adapter) HVals(ctx context.Context, key string) (*collectionlist.List[[]byte], error) {
 	vals, err := a.client.HVals(ctx, key).Result()
 	vals, err = wrapRedisResult("list hash values", vals, err)
 	if err != nil {
 		return nil, err
 	}
 
-	return collectionx.MapList(collectionx.NewListWithCapacity(len(vals), vals...), func(_ int, value string) []byte {
+	return collectionlist.MapList(collectionlist.NewListWithCapacity(len(vals), vals...), func(_ int, value string) []byte {
 		return []byte(value)
 	}), nil
 }

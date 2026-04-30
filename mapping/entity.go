@@ -5,7 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionset "github.com/arcgolabs/collectionx/set"
 	"github.com/samber/lo"
 )
 
@@ -49,16 +50,16 @@ type EntityMetadata struct {
 }
 
 // StorageNames returns all storage field names.
-func (m *EntityMetadata) StorageNames() collectionx.List[string] {
+func (m *EntityMetadata) StorageNames() *collectionlist.List[string] {
 	fieldNames := orderedFieldNames(m)
-	return collectionx.MapList(fieldNames, func(_ int, fieldName string) string {
+	return collectionlist.MapList(fieldNames, func(_ int, fieldName string) string {
 		return m.Fields[fieldName].StorageName()
 	})
 }
 
 // IndexedNames returns all effective indexed field names.
-func (m *EntityMetadata) IndexedNames() collectionx.List[string] {
-	names := collectionx.NewOrderedSetWithCapacity[string](len(m.IndexFields))
+func (m *EntityMetadata) IndexedNames() *collectionlist.List[string] {
+	names := collectionset.NewOrderedSetWithCapacity[string](len(m.IndexFields))
 	lo.ForEach(m.IndexFields, func(fieldName string, _ int) {
 		field, ok := m.Fields[fieldName]
 		if !ok {
@@ -68,7 +69,7 @@ func (m *EntityMetadata) IndexedNames() collectionx.List[string] {
 		names.Add(field.IndexNameOrDefault())
 	})
 
-	indexed := collectionx.NewListWithCapacity[string](names.Len())
+	indexed := collectionlist.NewListWithCapacity[string](names.Len())
 	names.Range(func(item string) bool {
 		indexed.Add(item)
 		return true
@@ -262,12 +263,12 @@ func isKeyField(fieldTag FieldTag) bool {
 	return fieldTag.Name == "id" || fieldTag.Name == "key"
 }
 
-func orderedFieldNames(m *EntityMetadata) collectionx.List[string] {
+func orderedFieldNames(m *EntityMetadata) *collectionlist.List[string] {
 	if m == nil || len(m.Fields) == 0 {
-		return collectionx.NewList[string]()
+		return collectionlist.NewList[string]()
 	}
 
-	names := collectionx.NewListWithCapacity[string](len(m.Fields))
+	names := collectionlist.NewListWithCapacity[string](len(m.Fields))
 	lo.ForEach(lo.Entries(m.Fields), func(entry lo.Entry[string, FieldTag], _ int) {
 		if entry.Value.Ignored || entry.Key == m.KeyField {
 			return

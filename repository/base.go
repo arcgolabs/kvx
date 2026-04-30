@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/collectionx/set"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/mapping"
@@ -97,7 +97,7 @@ func (b repositoryBase[T]) hydrateEntityID(entity *T, metadata *mapping.EntityMe
 	return wrapRepositoryError(metadata.SetEntityID(entity, extractIDFromKey(key)), "hydrate entity ID", "op", "hydrate_entity_id", "key", key, "entity_id", extractIDFromKey(key))
 }
 
-func (b repositoryBase[T]) scanAllKeys(ctx context.Context, kv kvx.KV) (collectionx.List[string], error) {
+func (b repositoryBase[T]) scanAllKeys(ctx context.Context, kv kvx.KV) (*collectionlist.List[string], error) {
 	seen := set.NewSet[string]()
 	cursor := uint64(0)
 
@@ -109,7 +109,7 @@ func (b repositoryBase[T]) scanAllKeys(ctx context.Context, kv kvx.KV) (collecti
 
 		seen.Add(keys.Values()...)
 		if next == 0 {
-			return collectionx.NewListWithCapacity(seen.Len(), seen.Values()...), nil
+			return collectionlist.NewListWithCapacity(seen.Len(), seen.Values()...), nil
 		}
 		cursor = next
 	}
@@ -147,8 +147,8 @@ func collectPresentMap[K comparable, T any](items []K, load func(K) (*T, error))
 	return results, nil
 }
 
-func collectPresentList[K any, T any](items []K, load func(K) (*T, error)) (collectionx.List[*T], error) {
-	results, err := lo.ReduceErr(items, func(results collectionx.List[*T], item K, _ int) (collectionx.List[*T], error) {
+func collectPresentList[K any, T any](items []K, load func(K) (*T, error)) (*collectionlist.List[*T], error) {
+	results, err := lo.ReduceErr(items, func(results *collectionlist.List[*T], item K, _ int) (*collectionlist.List[*T], error) {
 		entityOpt, err := loadPresent(load(item))
 		if err != nil {
 			return nil, err
@@ -157,7 +157,7 @@ func collectPresentList[K any, T any](items []K, load func(K) (*T, error)) (coll
 			results.Add(entity)
 		})
 		return results, nil
-	}, collectionx.NewListWithCapacity[*T](len(items)))
+	}, collectionlist.NewListWithCapacity[*T](len(items)))
 	if err != nil {
 		return nil, wrapRepositoryError(err, "collect present list", "op", "collect_present_list", "item_count", len(items))
 	}

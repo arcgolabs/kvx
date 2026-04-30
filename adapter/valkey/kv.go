@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/samber/lo"
 	"github.com/samber/oops"
@@ -130,7 +130,7 @@ func (a *Adapter) TTL(ctx context.Context, key string) (time.Duration, error) {
 }
 
 // Scan iterates over keys matching the pattern.
-func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count int64) (collectionx.List[string], uint64, error) {
+func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count int64) (*collectionlist.List[string], uint64, error) {
 	keys, err := a.Keys(ctx, pattern)
 	if err != nil {
 		return nil, 0, err
@@ -143,7 +143,7 @@ func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count
 
 	start := int(cursor)
 	if start >= keys.Len() {
-		return collectionx.NewList[string](), 0, nil
+		return collectionlist.NewList[string](), 0, nil
 	}
 	if count <= 0 {
 		count = int64(keys.Len() - start)
@@ -172,7 +172,7 @@ func scanCursorFromIndex(index int) (uint64, error) {
 }
 
 // Keys returns all keys matching the pattern.
-func (a *Adapter) Keys(ctx context.Context, pattern string) (collectionx.List[string], error) {
+func (a *Adapter) Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error) {
 	if pattern == "" {
 		pattern = "*"
 	}

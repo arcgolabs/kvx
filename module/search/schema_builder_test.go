@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/module/search"
 	"github.com/stretchr/testify/require"
@@ -81,12 +81,12 @@ func (*stubSearchClient) DropIndex(context.Context, string) error {
 	return nil
 }
 
-func (*stubSearchClient) Search(context.Context, string, string, int) (collectionx.List[string], error) {
-	return collectionx.NewList[string](), nil
+func (*stubSearchClient) Search(context.Context, string, string, int) (*collectionlist.List[string], error) {
+	return collectionlist.NewList[string](), nil
 }
 
-func (*stubSearchClient) SearchWithSort(context.Context, string, string, string, bool, int) (collectionx.List[string], error) {
-	return collectionx.NewList[string](), nil
+func (*stubSearchClient) SearchWithSort(context.Context, string, string, string, bool, int) (*collectionlist.List[string], error) {
+	return collectionlist.NewList[string](), nil
 }
 
 func (*stubSearchClient) SearchAggregate(context.Context, string, string, int) ([]map[string]any, error) {

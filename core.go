@@ -5,7 +5,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
+	collectionmapping "github.com/arcgolabs/collectionx/mapping"
 )
 
 // KV is the base key-value interface.
@@ -31,9 +32,9 @@ type KV interface {
 	// TTL gets the TTL for the given key.
 	TTL(ctx context.Context, key string) (time.Duration, error)
 	// Scan iterates over keys matching the pattern.
-	Scan(ctx context.Context, pattern string, cursor uint64, count int64) (collectionx.List[string], uint64, error)
+	Scan(ctx context.Context, pattern string, cursor uint64, count int64) (*collectionlist.List[string], uint64, error)
 	// Keys returns all keys matching the pattern (use with caution on large datasets).
-	Keys(ctx context.Context, pattern string) (collectionx.List[string], error)
+	Keys(ctx context.Context, pattern string) (*collectionlist.List[string], error)
 }
 
 // Hash represents a hash (field-value map) operation.
@@ -53,9 +54,9 @@ type Hash interface {
 	// HExists checks if a field exists in a hash.
 	HExists(ctx context.Context, key string, field string) (bool, error)
 	// HKeys gets all field names in a hash.
-	HKeys(ctx context.Context, key string) (collectionx.List[string], error)
+	HKeys(ctx context.Context, key string) (*collectionlist.List[string], error)
 	// HVals gets all values in a hash.
-	HVals(ctx context.Context, key string) (collectionx.List[[]byte], error)
+	HVals(ctx context.Context, key string) (*collectionlist.List[[]byte], error)
 	// HLen gets the number of fields in a hash.
 	HLen(ctx context.Context, key string) (int64, error)
 	// HIncrBy increments a field by the given value.
@@ -85,13 +86,13 @@ type Stream interface {
 	// XAdd adds an entry to a stream.
 	XAdd(ctx context.Context, key string, id string, values map[string][]byte) (string, error)
 	// XRead reads entries from a stream.
-	XRead(ctx context.Context, key string, start string, count int64) (collectionx.List[StreamEntry], error)
+	XRead(ctx context.Context, key string, start string, count int64) (*collectionlist.List[StreamEntry], error)
 	// XReadMultiple reads entries from multiple streams.
-	XReadMultiple(ctx context.Context, streams map[string]string, count int64, block time.Duration) (collectionx.MultiMap[string, StreamEntry], error)
+	XReadMultiple(ctx context.Context, streams map[string]string, count int64, block time.Duration) (*collectionmapping.MultiMap[string, StreamEntry], error)
 	// XRange reads entries in a range.
-	XRange(ctx context.Context, key string, start, stop string) (collectionx.List[StreamEntry], error)
+	XRange(ctx context.Context, key string, start, stop string) (*collectionlist.List[StreamEntry], error)
 	// XRevRange reads entries in reverse order.
-	XRevRange(ctx context.Context, key string, start, stop string) (collectionx.List[StreamEntry], error)
+	XRevRange(ctx context.Context, key string, start, stop string) (*collectionlist.List[StreamEntry], error)
 	// XLen gets the number of entries in a stream.
 	XLen(ctx context.Context, key string) (int64, error)
 	// XTrim trims the stream to approximately maxLen entries.
@@ -109,21 +110,21 @@ type Stream interface {
 	// XGroupDelConsumer deletes a consumer from a group.
 	XGroupDelConsumer(ctx context.Context, key string, group string, consumer string) error
 	// XReadGroup reads entries as part of a consumer group.
-	XReadGroup(ctx context.Context, group string, consumer string, streams map[string]string, count int64, block time.Duration) (collectionx.MultiMap[string, StreamEntry], error)
+	XReadGroup(ctx context.Context, group string, consumer string, streams map[string]string, count int64, block time.Duration) (*collectionmapping.MultiMap[string, StreamEntry], error)
 	// XAck acknowledges processing of stream entries.
 	XAck(ctx context.Context, key string, group string, ids []string) error
 	// XPending gets pending entries information.
 	XPending(ctx context.Context, key string, group string) (*PendingInfo, error)
 	// XPendingRange gets pending entries in a range.
-	XPendingRange(ctx context.Context, key string, group string, start string, stop string, count int64) (collectionx.List[PendingEntry], error)
+	XPendingRange(ctx context.Context, key string, group string, start string, stop string, count int64) (*collectionlist.List[PendingEntry], error)
 	// XClaim claims pending entries for a consumer.
-	XClaim(ctx context.Context, key string, group string, consumer string, minIdleTime time.Duration, ids []string) (collectionx.List[StreamEntry], error)
+	XClaim(ctx context.Context, key string, group string, consumer string, minIdleTime time.Duration, ids []string) (*collectionlist.List[StreamEntry], error)
 	// XAutoClaim auto-claims pending entries.
-	XAutoClaim(ctx context.Context, key string, group string, consumer string, minIdleTime time.Duration, start string, count int64) (string, collectionx.List[StreamEntry], error)
+	XAutoClaim(ctx context.Context, key string, group string, consumer string, minIdleTime time.Duration, start string, count int64) (string, *collectionlist.List[StreamEntry], error)
 	// XInfoGroups gets info about consumer groups.
-	XInfoGroups(ctx context.Context, key string) (collectionx.List[GroupInfo], error)
+	XInfoGroups(ctx context.Context, key string) (*collectionlist.List[GroupInfo], error)
 	// XInfoConsumers gets info about consumers in a group.
-	XInfoConsumers(ctx context.Context, key string, group string) (collectionx.List[ConsumerInfo], error)
+	XInfoConsumers(ctx context.Context, key string, group string) (*collectionlist.List[ConsumerInfo], error)
 	// XInfoStream gets info about a stream.
 	XInfoStream(ctx context.Context, key string) (*StreamInfo, error)
 }
@@ -131,7 +132,7 @@ type Stream interface {
 // StreamEntry represents a stream entry.
 type StreamEntry struct {
 	ID     string
-	Values collectionx.Map[string, []byte]
+	Values *collectionmapping.Map[string, []byte]
 }
 
 // PendingInfo represents pending entries summary.
@@ -139,7 +140,7 @@ type PendingInfo struct {
 	Count     int64
 	StartID   string
 	EndID     string
-	Consumers collectionx.Map[string, int64] // consumer name -> pending count
+	Consumers *collectionmapping.Map[string, int64] // consumer name -> pending count
 }
 
 // PendingEntry represents a single pending entry.
@@ -208,9 +209,9 @@ type Search interface {
 	// DropIndex drops a secondary index.
 	DropIndex(ctx context.Context, indexName string) error
 	// Search performs a search query.
-	Search(ctx context.Context, indexName string, query string, limit int) (collectionx.List[string], error)
+	Search(ctx context.Context, indexName string, query string, limit int) (*collectionlist.List[string], error)
 	// SearchWithSort performs a search query with sorting.
-	SearchWithSort(ctx context.Context, indexName string, query string, sortBy string, ascending bool, limit int) (collectionx.List[string], error)
+	SearchWithSort(ctx context.Context, indexName string, query string, sortBy string, ascending bool, limit int) (*collectionlist.List[string], error)
 	// SearchAggregate performs an aggregation query.
 	SearchAggregate(ctx context.Context, indexName string, query string, limit int) ([]map[string]any, error)
 }

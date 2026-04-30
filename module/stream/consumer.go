@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
 )
 
@@ -21,7 +21,7 @@ type Consumer struct {
 type MessageHandler func(ctx context.Context, entry kvx.StreamEntry) error
 
 // BatchMessageHandler is the callback function for processing messages in batch.
-type BatchMessageHandler func(ctx context.Context, entries collectionx.List[kvx.StreamEntry]) error
+type BatchMessageHandler func(ctx context.Context, entries *collectionlist.List[kvx.StreamEntry]) error
 
 // ConsumerOptions contains options for creating a Consumer.
 type ConsumerOptions struct {
@@ -71,8 +71,8 @@ func (c *Consumer) Run(ctx context.Context) error {
 	}
 }
 
-func (c *Consumer) processEntries(ctx context.Context, entries collectionx.List[kvx.StreamEntry]) error {
-	idsToAck := collectionx.FilterMapList(entries, func(_ int, entry kvx.StreamEntry) (string, bool) {
+func (c *Consumer) processEntries(ctx context.Context, entries *collectionlist.List[kvx.StreamEntry]) error {
+	idsToAck := collectionlist.FilterMapList(entries, func(_ int, entry kvx.StreamEntry) (string, bool) {
 		if err := c.handler(ctx, entry); err != nil || !c.autoAck {
 			return "", false
 		}
@@ -109,7 +109,7 @@ func NewBatchConsumer(group *ConsumerGroup, handler BatchMessageHandler, opts Co
 
 // Run starts the batch consumer loop.
 func (c *BatchConsumer) Run(ctx context.Context) error {
-	buffer := collectionx.NewListWithCapacity[kvx.StreamEntry](int(c.batchSize))
+	buffer := collectionlist.NewListWithCapacity[kvx.StreamEntry](int(c.batchSize))
 	timer := time.NewTimer(c.maxWaitTime)
 	defer stopTimer(timer)
 
@@ -134,7 +134,7 @@ func (c *BatchConsumer) Run(ctx context.Context) error {
 	}
 }
 
-func (c *BatchConsumer) flushOnTimer(ctx context.Context, timer *time.Timer, buffer collectionx.List[kvx.StreamEntry]) (bool, error) {
+func (c *BatchConsumer) flushOnTimer(ctx context.Context, timer *time.Timer, buffer *collectionlist.List[kvx.StreamEntry]) (bool, error) {
 	select {
 	case <-ctx.Done():
 		return false, wrapContextError(ctx, "run batch consumer")
@@ -149,7 +149,7 @@ func (c *BatchConsumer) flushOnTimer(ctx context.Context, timer *time.Timer, buf
 	}
 }
 
-func (c *BatchConsumer) remainingCapacity(buffer collectionx.List[kvx.StreamEntry]) int64 {
+func (c *BatchConsumer) remainingCapacity(buffer *collectionlist.List[kvx.StreamEntry]) int64 {
 	remaining := c.batchSize - int64(buffer.Len())
 	if remaining > 0 {
 		return remaining
@@ -158,7 +158,7 @@ func (c *BatchConsumer) remainingCapacity(buffer collectionx.List[kvx.StreamEntr
 	return c.batchSize
 }
 
-func (c *BatchConsumer) flushIfReady(ctx context.Context, timer *time.Timer, buffer collectionx.List[kvx.StreamEntry]) error {
+func (c *BatchConsumer) flushIfReady(ctx context.Context, timer *time.Timer, buffer *collectionlist.List[kvx.StreamEntry]) error {
 	if int64(buffer.Len()) < c.batchSize {
 		return nil
 	}
@@ -170,7 +170,7 @@ func (c *BatchConsumer) flushIfReady(ctx context.Context, timer *time.Timer, buf
 	return nil
 }
 
-func (c *BatchConsumer) flushBuffer(ctx context.Context, buffer collectionx.List[kvx.StreamEntry]) error {
+func (c *BatchConsumer) flushBuffer(ctx context.Context, buffer *collectionlist.List[kvx.StreamEntry]) error {
 	if buffer.IsEmpty() {
 		return nil
 	}
@@ -182,7 +182,7 @@ func (c *BatchConsumer) flushBuffer(ctx context.Context, buffer collectionx.List
 	return nil
 }
 
-func (c *BatchConsumer) processBatch(ctx context.Context, entries collectionx.List[kvx.StreamEntry]) error {
+func (c *BatchConsumer) processBatch(ctx context.Context, entries *collectionlist.List[kvx.StreamEntry]) error {
 	if err := c.handler(ctx, entries); err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (c *BatchConsumer) processBatch(ctx context.Context, entries collectionx.Li
 		return nil
 	}
 
-	ids := collectionx.MapList(entries, func(_ int, entry kvx.StreamEntry) string {
+	ids := collectionlist.MapList(entries, func(_ int, entry kvx.StreamEntry) string {
 		return entry.ID
 	})
 	return wrapError(c.group.Ack(ctx, ids.Values()), "ack processed batch entries")

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arcgolabs/collectionx"
+	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/collectionx/set"
 	"github.com/arcgolabs/kvx"
 	"github.com/arcgolabs/kvx/mapping"
@@ -150,7 +150,7 @@ func (i *Indexer[T]) getIndexMembers(ctx context.Context, indexKey string) ([]st
 		return nil, wrapRepositoryError(err, "list index members", "op", "list_index_members", "index_key", indexKey)
 	}
 	prefixLen := len(indexKey) + 1
-	return collectionx.FilterMapList(keys, func(_ int, key string) (string, bool) {
+	return collectionlist.FilterMapList(keys, func(_ int, key string) (string, bool) {
 		if len(key) <= prefixLen {
 			return "", false
 		}
