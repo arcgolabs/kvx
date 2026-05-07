@@ -36,6 +36,9 @@ func main() {
 	entity, err := repo.FindByID(ctx, "u-2")
 	must(err)
 
+	firstAlice, err := repo.FindFirstByField(ctx, "email", "alice@example.com")
+	must(err)
+
 	must(repo.UpdateField(ctx, "u-2", "$.name", "Bobby"))
 
 	updated, err := repo.FindByID(ctx, "u-2")
@@ -46,8 +49,9 @@ func main() {
 
 	fmt.Printf("exists u-1: %v\n", exists)
 	fmt.Printf("loaded: %s (%s)\n", entity.ID, entity.Email)
+	fmt.Printf("first indexed match: %s\n", firstAlice.ID)
 	fmt.Printf("updated name: %s\n", updated.Name)
-	fmt.Printf("total: %d\n", len(all))
+	fmt.Printf("total: %d\n", all.Len())
 }
 
 func must(err error) {

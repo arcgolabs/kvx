@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/kvx"
@@ -10,6 +11,19 @@ import (
 // FindByID loads an entity by its logical ID.
 func (r *JSONRepository[T]) FindByID(ctx context.Context, id string) (*T, error) {
 	return r.findByKey(ctx, r.base.keyFromID(id))
+}
+
+// TryFindByID loads an entity by its logical ID and reports whether it exists.
+func (r *JSONRepository[T]) TryFindByID(ctx context.Context, id string) (*T, bool, error) {
+	entity, err := r.FindByID(ctx, id)
+	if errors.Is(err, ErrNotFound) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+
+	return entity, true, nil
 }
 
 // FindByIDs loads all entities that exist for the provided logical IDs.
@@ -46,6 +60,16 @@ func (r *JSONRepository[T]) FindByField(ctx context.Context, fieldName, fieldVal
 	return r.findManyByIDs(ctx, ids)
 }
 
+// FindFirstByField loads the first entity whose indexed field matches the provided value.
+func (r *JSONRepository[T]) FindFirstByField(ctx context.Context, fieldName, fieldValue string) (*T, error) {
+	ids, err := r.base.idsByField(ctx, fieldName, fieldValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.findFirstByIDs(ctx, ids)
+}
+
 // FindByFields loads all entities that match every provided indexed field value.
 func (r *JSONRepository[T]) FindByFields(ctx context.Context, fields map[string]string) (*collectionlist.List[*T], error) {
 	if len(fields) == 0 {
@@ -67,6 +91,22 @@ func (r *JSONRepository[T]) FindByFields(ctx context.Context, fields map[string]
 	return r.findManyByIDs(ctx, intersection)
 }
 
+// FindFirstByFields loads the first entity that matches every provided indexed field value.
+func (r *JSONRepository[T]) FindFirstByFields(ctx context.Context, fields map[string]string) (*T, error) {
+	if len(fields) == 0 {
+		return r.FindFirst(ctx)
+	}
+
+	idGroups, err := loadFieldIDGroups(fields, func(fieldName, fieldValue string) ([]string, error) {
+		return r.base.idsByField(ctx, fieldName, fieldValue)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return r.findFirstByIDs(ctx, intersectStringSlices(idGroups...))
+}
+
 // FindAll loads all entities stored under the repository key prefix.
 func (r *JSONRepository[T]) FindAll(ctx context.Context) (*collectionlist.List[*T], error) {
 	keys, err := r.base.scanAllKeys(ctx, r.kv)
@@ -75,6 +115,18 @@ func (r *JSONRepository[T]) FindAll(ctx context.Context) (*collectionlist.List[*
 	}
 
 	return collectPresentList(keys.Values(), func(key string) (*T, error) {
+		return r.findByKey(ctx, key)
+	})
+}
+
+// FindFirst loads the first entity found under the repository key prefix.
+func (r *JSONRepository[T]) FindFirst(ctx context.Context) (*T, error) {
+	keys, err := r.base.scanAllKeys(ctx, r.kv)
+	if err != nil {
+		return nil, err
+	}
+
+	return collectFirstPresent(keys.Values(), func(key string) (*T, error) {
 		return r.findByKey(ctx, key)
 	})
 }
@@ -131,6 +183,12 @@ func (r *JSONRepository[T]) findByKey(ctx context.Context, key string) (*T, erro
 
 func (r *JSONRepository[T]) findManyByIDs(ctx context.Context, ids []string) (*collectionlist.List[*T], error) {
 	return collectPresentList(ids, func(id string) (*T, error) {
+		return r.FindByID(ctx, id)
+	})
+}
+
+func (r *JSONRepository[T]) findFirstByIDs(ctx context.Context, ids []string) (*T, error) {
+	return collectFirstPresent(ids, func(id string) (*T, error) {
 		return r.FindByID(ctx, id)
 	})
 }

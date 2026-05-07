@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 
 	collectionlist "github.com/arcgolabs/collectionx/list"
 	"github.com/arcgolabs/collectionx/set"
@@ -107,12 +108,29 @@ func (b repositoryBase[T]) scanAllKeys(ctx context.Context, kv kvx.KV) (*collect
 			return nil, wrapRepositoryError(err, "scan repository keys", "op", "scan_repository_keys", "pattern", b.keyFromID("*"), "cursor", cursor, "batch_size", scanBatchSize)
 		}
 
-		seen.Add(keys.Values()...)
+		keys.Range(func(_ int, key string) bool {
+			if b.isEntityKey(key) {
+				seen.Add(key)
+			}
+			return true
+		})
 		if next == 0 {
 			return collectionlist.NewListWithCapacity(seen.Len(), seen.Values()...), nil
 		}
 		cursor = next
 	}
+}
+
+func (b repositoryBase[T]) isEntityKey(key string) bool {
+	return !strings.HasPrefix(key, b.indexKeyPrefix())
+}
+
+func (b repositoryBase[T]) indexKeyPrefix() string {
+	prefix := strings.TrimSuffix(b.keyBuilder.BuildWithID(""), ":")
+	if prefix == "" {
+		return "idx:"
+	}
+	return prefix + ":idx:"
 }
 
 func intersectStringSlices(groups ...[]string) []string {
@@ -162,6 +180,21 @@ func collectPresentList[K any, T any](items []K, load func(K) (*T, error)) (*col
 		return nil, wrapRepositoryError(err, "collect present list", "op", "collect_present_list", "item_count", len(items))
 	}
 	return results, nil
+}
+
+func collectFirstPresent[K any, T any](items []K, load func(K) (*T, error)) (*T, error) {
+	for _, item := range items {
+		entity, err := load(item)
+		if err == nil {
+			return entity, nil
+		}
+		if errors.Is(err, ErrNotFound) {
+			continue
+		}
+		return nil, wrapRepositoryError(err, "collect first present entity", "op", "collect_first_present_entity", "item_count", len(items))
+	}
+
+	return nil, ErrNotFound
 }
 
 func loadPresent[T any](entity *T, err error) (mo.Option[*T], error) {

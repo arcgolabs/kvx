@@ -29,6 +29,7 @@ go get github.com/arcgolabs/kvx@latest
 - Unified `Client` capability interfaces for `KV`, `Hash`, `JSON`, `PubSub`, `Stream`, `Search`, `Script`, and `Lock`
 - Metadata-driven mapping based on `kvx` struct tags
 - `HashRepository` and `JSONRepository` for strongly typed persistence
+- Repository convenience reads for optional lookup and first-match indexed queries
 - Secondary-index helper support through repository indexers
 - Feature modules for `json`, `pubsub`, `stream`, `search`, and `lock`
 - Thin adapters for Redis and Valkey drivers

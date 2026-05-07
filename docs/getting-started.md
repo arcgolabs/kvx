@@ -11,7 +11,7 @@ This page shows a minimal, runnable in-memory `HashRepository` example with:
 
 - `kvx` struct tags for mapping and indexing
 - `repository.NewPreset` for shared repository options
-- `FindByID`, `FindByField`, and `Count`
+- `FindByID`, `TryFindByID`, `FindFirstByField`, `FindByField`, and `Count`
 
 If you need a real Redis / Valkey connection, see [Adapters (Redis / Valkey)](./adapters).
 
@@ -47,6 +47,13 @@ func main() {
 	entity, err := repo.FindByID(ctx, "u-1")
 	must(err)
 
+	optional, found, err := repo.TryFindByID(ctx, "missing")
+	must(err)
+	_ = optional
+
+	firstMatch, err := repo.FindFirstByField(ctx, "email", "alice@example.com")
+	must(err)
+
 	matches, err := repo.FindByField(ctx, "email", "alice@example.com")
 	must(err)
 
@@ -54,7 +61,9 @@ func main() {
 	must(err)
 
 	fmt.Printf("loaded: %s (%s)\n", entity.Name, entity.Email)
-	fmt.Printf("indexed matches: %d\n", len(matches))
+	fmt.Printf("missing found: %v\n", found)
+	fmt.Printf("first indexed match: %s\n", firstMatch.ID)
+	fmt.Printf("indexed matches: %d\n", matches.Len())
 	fmt.Printf("count: %d\n", count)
 }
 

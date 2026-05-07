@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	collectionlist "github.com/arcgolabs/collectionx/list"
 )
@@ -9,6 +10,19 @@ import (
 // FindByID loads an entity by its logical ID.
 func (r *HashRepository[T]) FindByID(ctx context.Context, id string) (*T, error) {
 	return r.findByKey(ctx, r.base.keyFromID(id))
+}
+
+// TryFindByID loads an entity by its logical ID and reports whether it exists.
+func (r *HashRepository[T]) TryFindByID(ctx context.Context, id string) (*T, bool, error) {
+	entity, err := r.FindByID(ctx, id)
+	if errors.Is(err, ErrNotFound) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+
+	return entity, true, nil
 }
 
 // FindByIDs loads all entities that exist for the provided logical IDs.
@@ -47,6 +61,18 @@ func (r *HashRepository[T]) FindAll(ctx context.Context) (*collectionlist.List[*
 	})
 }
 
+// FindFirst loads the first entity found under the repository key prefix.
+func (r *HashRepository[T]) FindFirst(ctx context.Context) (*T, error) {
+	keys, err := r.base.scanAllKeys(ctx, r.kv)
+	if err != nil {
+		return nil, err
+	}
+
+	return collectFirstPresent(keys.Values(), func(key string) (*T, error) {
+		return r.findByKey(ctx, key)
+	})
+}
+
 // Count returns the number of entities stored under the repository key prefix.
 func (r *HashRepository[T]) Count(ctx context.Context) (int64, error) {
 	keys, err := r.base.scanAllKeys(ctx, r.kv)
@@ -65,6 +91,16 @@ func (r *HashRepository[T]) FindByField(ctx context.Context, fieldName, fieldVal
 	}
 
 	return r.findManyByIDs(ctx, entityIDs)
+}
+
+// FindFirstByField loads the first entity whose indexed field matches the provided value.
+func (r *HashRepository[T]) FindFirstByField(ctx context.Context, fieldName, fieldValue string) (*T, error) {
+	entityIDs, err := r.base.idsByField(ctx, fieldName, fieldValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.findFirstByIDs(ctx, entityIDs)
 }
 
 // FindByFields loads all entities that match every provided indexed field value.
@@ -86,6 +122,22 @@ func (r *HashRepository[T]) FindByFields(ctx context.Context, fields map[string]
 	}
 
 	return r.findManyByIDs(ctx, intersection)
+}
+
+// FindFirstByFields loads the first entity that matches every provided indexed field value.
+func (r *HashRepository[T]) FindFirstByFields(ctx context.Context, fields map[string]string) (*T, error) {
+	if len(fields) == 0 {
+		return r.FindFirst(ctx)
+	}
+
+	idGroups, err := loadFieldIDGroups(fields, func(fieldName, fieldValue string) ([]string, error) {
+		return r.base.idsByField(ctx, fieldName, fieldValue)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return r.findFirstByIDs(ctx, intersectStringSlices(idGroups...))
 }
 
 func (r *HashRepository[T]) findByKey(ctx context.Context, key string) (*T, error) {
@@ -124,6 +176,12 @@ func (r *HashRepository[T]) findByKey(ctx context.Context, key string) (*T, erro
 
 func (r *HashRepository[T]) findManyByIDs(ctx context.Context, ids []string) (*collectionlist.List[*T], error) {
 	return collectPresentList(ids, func(id string) (*T, error) {
+		return r.FindByID(ctx, id)
+	})
+}
+
+func (r *HashRepository[T]) findFirstByIDs(ctx context.Context, ids []string) (*T, error) {
+	return collectFirstPresent(ids, func(id string) (*T, error) {
 		return r.FindByID(ctx, id)
 	})
 }
