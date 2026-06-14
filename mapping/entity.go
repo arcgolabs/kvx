@@ -105,7 +105,7 @@ func (m *EntityMetadata) SetEntityID(entity any, id string) error {
 	}
 
 	v := reflect.ValueOf(entity)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
+	if v.Kind() != reflect.Pointer || v.IsNil() {
 		return ErrNonPointerValue
 	}
 	v = v.Elem()
@@ -133,7 +133,7 @@ func NewTagParser() *TagParser {
 
 // Parse parses metadata from a struct type.
 func (p *TagParser) Parse(t reflect.Type) (*EntityMetadata, error) {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	if t.Kind() != reflect.Struct {
@@ -210,7 +210,7 @@ func (p *TagParser) parseFieldTag(fieldName, tag string) FieldTag {
 
 // GetCached returns cached metadata for a type if available.
 func (p *TagParser) GetCached(t reflect.Type) *EntityMetadata {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	if cached, ok := p.cache.Load(t); ok {

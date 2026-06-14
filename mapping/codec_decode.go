@@ -33,7 +33,7 @@ func (c *HashCodec) decodeField(v reflect.Value, data []byte) error {
 	if v.Kind() == reflect.Struct {
 		return c.decodeStructField(v, value, data)
 	}
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		return c.decodePointerField(v, data)
 	}
 

@@ -60,7 +60,7 @@ func NewHashCodec(serializer Serializer) *HashCodec {
 // Encode encodes an entity to a hash map.
 func (c *HashCodec) Encode(entity any, metadata *EntityMetadata) (map[string][]byte, error) {
 	v := reflect.ValueOf(entity)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
@@ -87,7 +87,7 @@ func (c *HashCodec) Encode(entity any, metadata *EntityMetadata) (map[string][]b
 // Decode decodes a hash map to an entity.
 func (c *HashCodec) Decode(data map[string][]byte, entity any, metadata *EntityMetadata) error {
 	v := reflect.ValueOf(entity)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 

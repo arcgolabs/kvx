@@ -20,7 +20,7 @@ func NewKeyBuilder(prefix string) *KeyBuilder {
 // Build builds a key from an entity's ID field value.
 func (b *KeyBuilder) Build(entity any, metadata *EntityMetadata) (string, error) {
 	v := reflect.ValueOf(entity)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 

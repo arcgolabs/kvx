@@ -3,11 +3,11 @@ module github.com/arcgolabs/kvx/adapter/redis
 go 1.26.2
 
 require (
-	github.com/arcgolabs/collectionx/list v0.7.0
-	github.com/arcgolabs/collectionx/mapping v0.7.0
-	github.com/redis/go-redis/v9 v9.19.0
+	github.com/arcgolabs/collectionx/list v0.9.0
+	github.com/arcgolabs/collectionx/mapping v0.9.0
+	github.com/redis/go-redis/v9 v9.20.1
 	github.com/samber/lo v1.53.0
-	github.com/samber/oops v1.21.0
+	github.com/samber/oops v1.22.0
 )
 
 require (
