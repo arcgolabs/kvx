@@ -56,6 +56,9 @@ func main() {
 
 	matches, err := repo.FindByField(ctx, "email", "alice@example.com")
 	must(err)
+	emails := matches.Stream().Map(func(user *shared.User) string {
+		return user.Email
+	}).ToSlice()
 
 	count, err := repo.Count(ctx)
 	must(err)
@@ -64,6 +67,7 @@ func main() {
 	fmt.Printf("missing found: %v\n", found)
 	fmt.Printf("first indexed match: %s\n", firstMatch.ID)
 	fmt.Printf("indexed matches: %d\n", matches.Len())
+	fmt.Printf("matched emails: %v\n", emails)
 	fmt.Printf("count: %d\n", count)
 }
 

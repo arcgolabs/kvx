@@ -56,42 +56,44 @@ func (j *JSON) SetPath(ctx context.Context, key, path string, value any) error {
 	return j.setPathData(ctx, key, path, data)
 }
 
-// Get gets a JSON document by key.
-func (j *JSON) Get(ctx context.Context, key string, dest any) error {
+// Get gets and decodes a JSON document by key.
+func (j *JSON) Get[T any](ctx context.Context, key string) (T, error) {
+	var value T
 	data, err := j.getDocumentData(ctx, key)
 	if err != nil {
-		return err
+		return value, err
 	}
 	if len(data) == 0 {
-		return oops.In("kvx/module/json").
+		return value, oops.In("kvx/module/json").
 			With("op", "get", "key", key, "path", "$").
 			Wrapf(kvx.ErrNil, "document not found")
 	}
-	if err := unmarshalJSONValue(data, dest, "get"); err != nil {
-		return oops.In("kvx/module/json").
+	if err := unmarshalJSONValue(data, &value, "get"); err != nil {
+		return value, oops.In("kvx/module/json").
 			With("op", "get", "key", key, "path", "$").
 			Wrapf(err, "unmarshal json document")
 	}
-	return nil
+	return value, nil
 }
 
-// GetPath gets a JSON value at a specific path.
-func (j *JSON) GetPath(ctx context.Context, key, path string, dest any) error {
+// GetPath gets and decodes a JSON value at a specific path.
+func (j *JSON) GetPath[T any](ctx context.Context, key, path string) (T, error) {
+	var value T
 	data, err := j.getPathData(ctx, key, path)
 	if err != nil {
-		return err
+		return value, err
 	}
 	if len(data) == 0 {
-		return oops.In("kvx/module/json").
+		return value, oops.In("kvx/module/json").
 			With("op", "get_path", "key", key, "path", path).
 			Wrapf(kvx.ErrNil, "path not found")
 	}
-	if err := unmarshalJSONValue(data, dest, "get_path"); err != nil {
-		return oops.In("kvx/module/json").
+	if err := unmarshalJSONValue(data, &value, "get_path"); err != nil {
+		return value, oops.In("kvx/module/json").
 			With("op", "get_path", "key", key, "path", path).
 			Wrapf(err, "unmarshal json path")
 	}
-	return nil
+	return value, nil
 }
 
 // Delete deletes a JSON document or a path within it.
@@ -243,22 +245,23 @@ func (j *JSON) ArrayIndex(ctx context.Context, key, path string, value any) (int
 		New("value not found in array")
 }
 
-// ArrayPop removes and returns the last element of an array.
-func (j *JSON) ArrayPop(ctx context.Context, key, path string) (any, error) {
+// ArrayPop removes, decodes, and returns the last element of an array.
+func (j *JSON) ArrayPop[T any](ctx context.Context, key, path string) (T, error) {
+	var zero T
 	data, err := j.getPathData(ctx, key, path)
 	if err != nil {
-		return nil, err
+		return zero, err
 	}
 
-	var arr []any
+	var arr []T
 	if decodeErr := unmarshalJSONValue(data, &arr, "array_pop"); decodeErr != nil {
-		return nil, oops.In("kvx/module/json").
+		return zero, oops.In("kvx/module/json").
 			With("op", "array_pop", "key", key, "path", path).
 			Wrapf(decodeErr, "unmarshal json array")
 	}
 
 	if len(arr) == 0 {
-		return nil, oops.In("kvx/module/json").
+		return zero, oops.In("kvx/module/json").
 			With("op", "array_pop", "key", key, "path", path).
 			New("array is empty")
 	}
@@ -269,12 +272,12 @@ func (j *JSON) ArrayPop(ctx context.Context, key, path string) (any, error) {
 	// Set the modified array back
 	newData, err := marshalJSONValue("array_pop", arr)
 	if err != nil {
-		return nil, oops.In("kvx/module/json").
+		return zero, oops.In("kvx/module/json").
 			With("op", "array_pop", "key", key, "path", path).
 			Wrapf(err, "marshal json array")
 	}
 	if err := j.setPathData(ctx, key, path, newData); err != nil {
-		return nil, err
+		return zero, err
 	}
 
 	return last, nil
@@ -331,13 +334,28 @@ func (j *JSON) ObjectMerge(ctx context.Context, key, path string, objects ...map
 	return j.setPathData(ctx, key, path, newData)
 }
 
-// MultiGet gets multiple JSON documents by keys.
-func (j *JSON) MultiGet(ctx context.Context, keys []string) (map[string][]byte, error) {
-	return lo.Reduce(keys, func(results map[string][]byte, key string, _ int) map[string][]byte {
+// MultiGet gets and decodes all present JSON documents for the provided keys.
+func (j *JSON) MultiGet[T any](ctx context.Context, keys []string) (map[string]T, error) {
+	results := make(map[string]T, len(keys))
+	for _, key := range keys {
 		data, err := j.getDocumentData(ctx, key)
-		if err == nil {
-			results[key] = data
+		if errors.Is(err, kvx.ErrNil) {
+			continue
 		}
-		return results
-	}, make(map[string][]byte, len(keys))), nil
+		if err != nil {
+			return nil, err
+		}
+		if len(data) == 0 {
+			continue
+		}
+
+		var value T
+		if err := unmarshalJSONValue(data, &value, "multi_get"); err != nil {
+			return nil, oops.In("kvx/module/json").
+				With("op", "multi_get", "key", key, "key_count", len(keys)).
+				Wrapf(err, "unmarshal json document")
+		}
+		results[key] = value
+	}
+	return results, nil
 }

@@ -9,6 +9,25 @@ weight: 3
 
 `JSONRepository` is useful when you want a typed document model and need partial updates (JSONPath).
 
+The high-level `module/json` API uses Go 1.27 generic methods, so JSON reads return the requested type directly:
+
+```go
+import jsonmodule "github.com/arcgolabs/kvx/module/json"
+
+documents := jsonmodule.NewJSON(backend)
+
+user, err := documents.Get[shared.User](ctx, "json:user:u-1")
+must(err)
+
+email, err := documents.GetPath[string](ctx, "json:user:u-1", "$.email")
+must(err)
+
+users, err := documents.MultiGet[shared.User](ctx, []string{"json:user:u-1", "json:user:u-2"})
+must(err)
+
+fmt.Println(user.ID, email, len(users))
+```
+
 ## Example
 
 ```go

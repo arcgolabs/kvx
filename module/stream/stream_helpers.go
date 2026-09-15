@@ -43,7 +43,8 @@ func limitEntries(entries *collectionlist.List[kvx.StreamEntry], count int64) *c
 		return entries
 	}
 
-	return entries.Take(int(count))
+	limited := entries.Stream().Limit(int(count)).ToSlice()
+	return collectionlist.NewListWithCapacity(len(limited), limited...)
 }
 
 func streamEntriesFromMultiMap(results *collectionmapping.MultiMap[string, kvx.StreamEntry], streamKey string) *collectionlist.List[kvx.StreamEntry] {

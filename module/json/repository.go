@@ -39,8 +39,8 @@ func (r *DocumentRepository[T]) Save(ctx context.Context, id string, doc *T, exp
 // FindByID finds a document by ID.
 func (r *DocumentRepository[T]) FindByID(ctx context.Context, id string) (*T, error) {
 	key := r.buildKey(id)
-	var doc T
-	if err := r.json.Get(ctx, key, &doc); err != nil {
+	doc, err := r.json.Get[T](ctx, key)
+	if err != nil {
 		return nil, oops.In("kvx/module/json").
 			With("op", "repository_find_by_id", "key", key, "id", id).
 			Wrapf(err, "find document")
@@ -66,8 +66,8 @@ func (r *DocumentRepository[T]) UpdatePath(ctx context.Context, id, path string,
 	return r.json.SetPath(ctx, key, path, value)
 }
 
-// GetPath gets a specific path from a document.
-func (r *DocumentRepository[T]) GetPath(ctx context.Context, id, path string, dest any) error {
+// GetPath gets and decodes a specific path from a document.
+func (r *DocumentRepository[T]) GetPath[V any](ctx context.Context, id, path string) (V, error) {
 	key := r.buildKey(id)
-	return r.json.GetPath(ctx, key, path, dest)
+	return r.json.GetPath[V](ctx, key, path)
 }

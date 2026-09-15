@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	collectionlist "github.com/arcgolabs/collectionx/list"
-	collectionset "github.com/arcgolabs/collectionx/set"
+	collectionstream "github.com/arcgolabs/collectionx/stream"
 	"github.com/samber/lo"
 )
 
@@ -51,30 +51,24 @@ type EntityMetadata struct {
 
 // StorageNames returns all storage field names.
 func (m *EntityMetadata) StorageNames() *collectionlist.List[string] {
-	fieldNames := orderedFieldNames(m)
-	return collectionlist.MapList(fieldNames, func(_ int, fieldName string) string {
+	names := orderedFieldNames(m).Stream().Map(func(fieldName string) string {
 		return m.Fields[fieldName].StorageName()
-	})
+	}).ToSlice()
+	return collectionlist.NewListWithCapacity(len(names), names...)
 }
 
 // IndexedNames returns all effective indexed field names.
 func (m *EntityMetadata) IndexedNames() *collectionlist.List[string] {
-	names := collectionset.NewOrderedSetWithCapacity[string](len(m.IndexFields))
-	lo.ForEach(m.IndexFields, func(fieldName string, _ int) {
+	names := collectionstream.Of(m.IndexFields...).Map(func(fieldName string) string {
 		field, ok := m.Fields[fieldName]
 		if !ok {
-			names.Add(fieldName)
-			return
+			return fieldName
 		}
-		names.Add(field.IndexNameOrDefault())
-	})
-
-	indexed := collectionlist.NewListWithCapacity[string](names.Len())
-	names.Range(func(item string) bool {
-		indexed.Add(item)
-		return true
-	})
-	return indexed
+		return field.IndexNameOrDefault()
+	}).DistinctBy(func(name string) string {
+		return name
+	}).ToSlice()
+	return collectionlist.NewListWithCapacity(len(names), names...)
 }
 
 // ResolveField resolves a struct field, storage field, or index alias into a struct field name and metadata.

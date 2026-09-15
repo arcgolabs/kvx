@@ -46,7 +46,7 @@ func (c *HashCodec) encodeStructField(v reflect.Value) ([]byte, error) {
 		return c.marshalValue(v.Interface())
 	}
 
-	timeValue, ok := v.Interface().(time.Time)
+	timeValue, ok := reflect.TypeAssert[time.Time](v)
 	if !ok {
 		return nil, fmt.Errorf("expected %s, got %T", timeType, v.Interface())
 	}

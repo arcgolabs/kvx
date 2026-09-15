@@ -151,7 +151,7 @@ func (cg *ConsumerGroup) Info(ctx context.Context) (*kvx.GroupInfo, error) {
 		return nil, err
 	}
 
-	group, ok := groups.FirstWhere(func(_ int, group kvx.GroupInfo) bool {
+	group, ok := groups.Stream().Find(func(group kvx.GroupInfo) bool {
 		return group.Name == cg.groupName
 	}).Get()
 	if !ok {
@@ -170,7 +170,7 @@ func (cg *ConsumerGroup) ConsumerInfo(ctx context.Context) (*kvx.ConsumerInfo, e
 		return nil, err
 	}
 
-	consumer, ok := consumers.FirstWhere(func(_ int, consumer kvx.ConsumerInfo) bool {
+	consumer, ok := consumers.Stream().Find(func(consumer kvx.ConsumerInfo) bool {
 		return consumer.Name == cg.consumerName
 	}).Get()
 	if !ok {

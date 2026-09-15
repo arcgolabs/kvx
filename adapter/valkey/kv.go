@@ -150,10 +150,12 @@ func (a *Adapter) Scan(ctx context.Context, pattern string, cursor uint64, count
 	}
 	end := start + int(count)
 	if end >= keys.Len() {
-		return keys.Drop(start), 0, nil
+		remaining := keys.Stream().Skip(start).ToSlice()
+		return collectionlist.NewListWithCapacity(len(remaining), remaining...), 0, nil
 	}
 
-	window := keys.Drop(start).Take(int(count))
+	windowValues := keys.Stream().Skip(start).Limit(int(count)).ToSlice()
+	window := collectionlist.NewListWithCapacity(len(windowValues), windowValues...)
 	nextCursor, err := scanCursorFromIndex(start + window.Len())
 	if err != nil {
 		return nil, 0, err

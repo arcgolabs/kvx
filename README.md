@@ -30,6 +30,7 @@ go get github.com/arcgolabs/kvx@latest
 - Metadata-driven mapping based on `kvx` struct tags
 - `HashRepository` and `JSONRepository` for strongly typed persistence
 - Repository convenience reads for optional lookup and first-match indexed queries
+- Go 1.27 generic JSON reads with typed `Get[T]`, `GetPath[T]`, `ArrayPop[T]`, and `MultiGet[T]` results
 - Secondary-index helper support through repository indexers
 - Feature modules for `json`, `pubsub`, `stream`, `search`, and `lock`
 - Thin adapters for Redis and Valkey drivers

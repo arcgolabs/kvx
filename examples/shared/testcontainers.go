@@ -37,12 +37,10 @@ func ValkeyJSONImage() string {
 // StartContainer starts a kvx example container and returns its address.
 func StartContainer(ctx context.Context, image string) (testcontainers.Container, string, error) {
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        image,
-			ExposedPorts: []string{defaultServerPort},
-			WaitingFor:   wait.ForListeningPort(defaultServerPort).WithStartupTimeout(45 * time.Second),
-		},
-		Started: true,
+		Image:        image,
+		ExposedPorts: []string{defaultServerPort},
+		WaitingFor:   wait.ForListeningPort(defaultServerPort).WithStartupTimeout(45 * time.Second),
+		Started:      true,
 	})
 	if err != nil {
 		return nil, "", fmt.Errorf("start %s container: %w", image, err)
